@@ -6,7 +6,7 @@ using UnityEngine;
 public class Grid2048 {
 
     private int gridLength;
-    private Dictionary<Vector2Int, Vector2> squarePositions;
+    private Dictionary<Vector2, Vector2Int> gridCoordinates;
     private Dictionary<Vector2, Tile> tiles;
     private List<Vector2> freeSquares;
     private System.Random rng;
@@ -15,7 +15,7 @@ public class Grid2048 {
         this.gridLength = gridLength;
 
         int gridLengthSquare = gridLength * gridLength;
-        squarePositions = new Dictionary<Vector2Int, Vector2> (gridLengthSquare);
+        gridCoordinates = new Dictionary<Vector2, Vector2Int> (gridLengthSquare);
         tiles = new Dictionary<Vector2, Tile> (gridLengthSquare);
         freeSquares = new List<Vector2> (gridLengthSquare);
         rng = new System.Random ();
@@ -30,7 +30,7 @@ public class Grid2048 {
                     x * (origin.x + tile2DSize.x + offset),
                     y * (origin.y + tile2DSize.y + offset));
 
-                squarePositions.Add (new Vector2Int (x, y), position);
+                gridCoordinates.Add (position, new Vector2Int (x, y));
                 freeSquares.Add (position);
             }
         }
@@ -43,10 +43,47 @@ public class Grid2048 {
 
         bool gridChanged = false;
 
-        List<Tile> tilesInGrid = new List<Tile>(tiles.Values);
-        tilesInGrid.Sort()  // Ordenar segun direction
+        List<Tile> tilesInGrid = new List<Tile> (tiles.Values);
+        switch (direction) {
+            case Enums.Direction.Up:
+            case Enums.Direction.Down:
+                tilesInGrid.Sort ((Tile t1, Tile t2) => sortVertically (t1, t2));
+                break;
+            case Enums.Direction.Left:
+            case Enums.Direction.Right:
+                tilesInGrid.Sort ((Tile t1, Tile t2) => sortHorizontally (t1, t2));
+                break;
+        }
+
+        if (direction == Enums.Direction.Down || direction == Enums.Direction.Left) {
+            tilesInGrid.Reverse ();
+        }
 
         return gridChanged;
+    }
+
+    private int sortHorizontally (Tile t1, Tile t2) {
+        Vector3 t1Pos = t1.transform.position;
+        Vector3 t2Pos = t2.transform.position;
+
+        if (t1Pos.x > t2Pos.x) {
+            return -1;
+        } else if (t1Pos.x < t2Pos.x) {
+            return 1;
+        }
+        return 0;
+    }
+
+    private int sortVertically (Tile t1, Tile t2) {
+        Vector3 t1Pos = t1.transform.position;
+        Vector3 t2Pos = t2.transform.position;
+
+        if (t1Pos.y > t2Pos.y) {
+            return -1;
+        } else if (t1Pos.y < t2Pos.y) {
+            return 1;
+        }
+        return 0;
     }
 
     public void AddTile (Tile tile) {

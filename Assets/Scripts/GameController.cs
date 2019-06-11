@@ -43,7 +43,7 @@ public class GameController : MonoBehaviour {
         }
 
         if (inputDirection != Enums.Direction.None) {
-            bool moved = grid.MoveTiles(inputDirection);
+            bool moved = grid.MoveTiles (inputDirection);
         }
     }
 
