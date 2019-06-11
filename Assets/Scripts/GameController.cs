@@ -18,7 +18,9 @@ public class GameController : MonoBehaviour {
 
     void Start () {
         grid = new Grid2048 (gridLength);
-        grid.InitializeGrid (transform.position, offsetBetweenTiles, tile2Prefab.GetComponent<MeshFilter> ().sharedMesh.bounds.size, squarePrefab);
+        Vector2 origin = transform.position;
+        Vector3 tileSize = tile2Prefab.GetComponent<MeshFilter> ().sharedMesh.bounds.size;
+        grid.InitializeGrid (origin, offsetBetweenTiles, tileSize, squarePrefab);
 
         for (int i = 0; i < initialTiles; ++i) {
             SpawnTile ();
@@ -44,6 +46,7 @@ public class GameController : MonoBehaviour {
         }
 
         if (inputDirection != Enums.Direction.None) {
+            grid.ResetGrid ();
             bool moved = grid.MoveTiles (inputDirection);
             if (moved) {
                 SpawnTile ();
@@ -52,11 +55,8 @@ public class GameController : MonoBehaviour {
     }
 
     private void SpawnTile () {
-        Vector2 position = grid.GetFreePosition ();
-
         GameObject tilePrefab = (rng.NextDouble () < tile2SpawnChance) ? tile2Prefab : tile4Prefab;
-        GameObject newTile = Instantiate (tilePrefab, position, tilePrefab.transform.rotation, transform);
-        grid.AddTile (newTile.GetComponent<Tile> ());
+        grid.SpawnTile (tilePrefab);
     }
 
 }
