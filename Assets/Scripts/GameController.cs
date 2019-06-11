@@ -9,6 +9,7 @@ public class GameController : MonoBehaviour {
     public int initialTiles = 2;
     public float offsetBetweenTiles = 0.1f;
     public double tile2SpawnChance = 0.8f;
+    public GameObject squarePrefab;
     public GameObject tile2Prefab;
     public GameObject tile4Prefab;
 
@@ -17,7 +18,7 @@ public class GameController : MonoBehaviour {
 
     void Start () {
         grid = new Grid2048 (gridLength);
-        grid.InitializeGrid (transform.position, offsetBetweenTiles, tile2Prefab.GetComponent<MeshFilter> ().sharedMesh.bounds.size);
+        grid.InitializeGrid (transform.position, offsetBetweenTiles, tile2Prefab.GetComponent<MeshFilter> ().sharedMesh.bounds.size, squarePrefab);
 
         for (int i = 0; i < initialTiles; ++i) {
             SpawnTile ();
@@ -44,6 +45,9 @@ public class GameController : MonoBehaviour {
 
         if (inputDirection != Enums.Direction.None) {
             bool moved = grid.MoveTiles (inputDirection);
+            if (moved) {
+                SpawnTile ();
+            }
         }
     }
 
