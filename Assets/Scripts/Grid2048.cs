@@ -62,7 +62,7 @@ public class Grid2048 {
 
     public void ResetGrid () {
         foreach (Tile t in tiles.Values) {
-            t.Reset ();
+            t.ResetTile ();
         }
     }
 
@@ -81,11 +81,11 @@ public class Grid2048 {
         switch (direction) {
             case Enums.Direction.Up:
             case Enums.Direction.Down:
-                sortedTiles.Sort ((Tile t1, Tile t2) => Tile.sortVertically (t1, t2));
+                sortedTiles.Sort ((Tile t1, Tile t2) => Tile.SortVertically (t1, t2));
                 break;
             case Enums.Direction.Left:
             case Enums.Direction.Right:
-                sortedTiles.Sort ((Tile t1, Tile t2) => Tile.sortHorizontally (t1, t2));
+                sortedTiles.Sort ((Tile t1, Tile t2) => Tile.SortHorizontally (t1, t2));
                 break;
         }
 
@@ -94,7 +94,7 @@ public class Grid2048 {
         }
 
         foreach (Tile t in sortedTiles) {
-            Vector2Int currentSquare = t.coordinatesInGrid;
+            Vector2Int currentSquare = t.Coordinates;
             Vector2Int nextSquare = DisplaceTile (t, direction, moveActually);
 
             if (!currentSquare.Equals (nextSquare)) {
@@ -107,16 +107,16 @@ public class Grid2048 {
 
     private Vector2Int DisplaceTile (Tile tile, Enums.Direction direction, bool moveActually) {
         Vector2Int directionVector = directionVectors[direction];
-        Vector2Int nextSquare = tile.coordinatesInGrid + directionVector;
+        Vector2Int nextSquare = tile.Coordinates + directionVector;
 
         for (; CoordinateBelongsToGrid (nextSquare); nextSquare += directionVector) {
             if (tiles.ContainsKey (nextSquare)) {
                 Tile tileInNextSquare = tiles[nextSquare];
-                if (tile.value == tileInNextSquare.value) {
+                if (tile.Value == tileInNextSquare.Value) {
                     if (moveActually) {
                         MergeTiles (tileInNextSquare, tile, directionVector);
                     }
-                    return tileInNextSquare.coordinatesInGrid;
+                    return tileInNextSquare.Coordinates;
                 } else {
                     break;
                 }
@@ -135,28 +135,28 @@ public class Grid2048 {
     }
 
     private void MergeTiles (Tile tileToMerge, Tile tileToRemove, Vector2Int direction) {
-        if (tileToMerge.Merge ()) {
-            tiles.Remove (tileToRemove.coordinatesInGrid);
-            freeSquares.Add (tileToRemove.coordinatesInGrid);
+        if (tileToMerge.MergeTile ()) {
+            tiles.Remove (tileToRemove.Coordinates);
+            freeSquares.Add (tileToRemove.Coordinates);
             GameObject.Destroy (tileToRemove.gameObject);
         } else {
-            Vector2Int newTileToRemoveCoordinates = tileToMerge.coordinatesInGrid - direction;
+            Vector2Int newTileToRemoveCoordinates = tileToMerge.Coordinates - direction;
             MoveTile (tileToRemove, newTileToRemoveCoordinates);
         }
 
     }
 
     private void MoveTile (Tile tile, Vector2Int newCoordinates) {
-        if (tile.coordinatesInGrid.Equals (newCoordinates)) {
+        if (tile.Coordinates.Equals (newCoordinates)) {
             return;
         }
 
-        tiles.Remove (tile.coordinatesInGrid);
+        tiles.Remove (tile.Coordinates);
 
-        tiles.Remove (tile.coordinatesInGrid);
+        tiles.Remove (tile.Coordinates);
         tiles.Add (newCoordinates, tile);
 
-        freeSquares.Add (tile.coordinatesInGrid);
+        freeSquares.Add (tile.Coordinates);
         freeSquares.Remove (newCoordinates);
 
         Vector2 newPosition = CalculatePosition (newCoordinates);
