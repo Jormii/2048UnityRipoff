@@ -47,8 +47,7 @@ public class GameController : MonoBehaviour {
 
         if (inputDirection != Enums.Direction.None) {
             grid.ResetGrid ();
-            bool moved = grid.MoveTiles (inputDirection);
-            if (moved) {
+            if (grid.MoveTiles (inputDirection)) {
                 SpawnTile ();
             }
         }

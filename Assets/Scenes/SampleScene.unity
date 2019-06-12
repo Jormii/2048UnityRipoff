@@ -150,7 +150,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   gridLength: 4
-  initialTiles: 9
+  initialTiles: 2
   offsetBetweenTiles: 0.1
   tile2SpawnChance: 0.6
   squarePrefab: {fileID: 1598644090014939082, guid: 88da47427d46e99d484395613ebf1c45,

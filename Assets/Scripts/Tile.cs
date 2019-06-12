@@ -21,9 +21,9 @@ public class Tile : MonoBehaviour {
         mergedThisTurn = false;
     }
 
-    public void Move (int x, int y) {
-        coordinatesInGrid.Set (x, y);
-        transform.position = new Vector3 (x, y, transform.position.z);
+    public void Move (Vector2Int coordinates, Vector2 position) {
+        coordinatesInGrid.Set (coordinates.x, coordinates.y);
+        transform.position = new Vector3 (position.x, position.y, transform.position.z);
     }
 
     public bool Merge () {
@@ -40,6 +40,30 @@ public class Tile : MonoBehaviour {
         tileText.text = value.ToString ();
         tileMaterial.color = TileColors.GetTileColor (value);
         mergedThisTurn = true;
+    }
+
+    public static int sortHorizontally (Tile t1, Tile t2) {
+        Vector3 t1Pos = t1.transform.position;
+        Vector3 t2Pos = t2.transform.position;
+
+        if (t1Pos.x > t2Pos.x) {
+            return -1;
+        } else if (t1Pos.x < t2Pos.x) {
+            return 1;
+        }
+        return 0;
+    }
+
+    public static int sortVertically (Tile t1, Tile t2) {
+        Vector3 t1Pos = t1.transform.position;
+        Vector3 t2Pos = t2.transform.position;
+
+        if (t1Pos.y > t2Pos.y) {
+            return -1;
+        } else if (t1Pos.y < t2Pos.y) {
+            return 1;
+        }
+        return 0;
     }
 
     public override string ToString () {

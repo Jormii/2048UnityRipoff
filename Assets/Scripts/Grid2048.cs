@@ -28,7 +28,7 @@ public class Grid2048 {
         tiles = new Dictionary<Vector2Int, Tile> (gridLengthSquare);
         freeSquares = new List<Vector2Int> (gridLengthSquare);
         rng = new System.Random ();
-        
+
         boardGameObject = new GameObject ("Board");
         squaresContainer = new GameObject ("Squares");
         squaresContainer.transform.parent = boardGameObject.transform;
@@ -43,7 +43,7 @@ public class Grid2048 {
 
         for (int x = 0; x < gridLength; ++x) {
             for (int y = 0; y < gridLength; ++y) {
-                Vector2 position = CalculatePosition (x, y);
+                Vector2 position = CalculatePosition (new Vector2Int (x, y));
                 freeSquares.Add (new Vector2Int (x, y));
 
                 Vector3 position3D = new Vector3 (position.x, position.y, 0.1f);
@@ -54,10 +54,10 @@ public class Grid2048 {
         }
     }
 
-    private Vector2 CalculatePosition (int x, int y) {
+    private Vector2 CalculatePosition (Vector2Int coordinates) {
         return new Vector2 (
-            x * (origin.x + tile2DSize.x + tileOffset),
-            y * (origin.y + tile2DSize.y + tileOffset));
+            coordinates.x * (origin.x + tile2DSize.x + tileOffset),
+            coordinates.y * (origin.y + tile2DSize.y + tileOffset));
     }
 
     public void ResetGrid () {
@@ -77,11 +77,11 @@ public class Grid2048 {
         switch (direction) {
             case Enums.Direction.Up:
             case Enums.Direction.Down:
-                sortedTiles.Sort ((Tile t1, Tile t2) => sortVertically (t1, t2));
+                sortedTiles.Sort ((Tile t1, Tile t2) => Tile.sortVertically (t1, t2));
                 break;
             case Enums.Direction.Left:
             case Enums.Direction.Right:
-                sortedTiles.Sort ((Tile t1, Tile t2) => sortHorizontally (t1, t2));
+                sortedTiles.Sort ((Tile t1, Tile t2) => Tile.sortHorizontally (t1, t2));
                 break;
         }
 
@@ -90,34 +90,15 @@ public class Grid2048 {
         }
 
         foreach (Tile t in sortedTiles) {
+            Vector2Int currentSquare = t.coordinatesInGrid;
             Vector2Int nextSquare = DisplaceTile (t, direction);
+
+            if (!currentSquare.Equals (nextSquare)) {
+                gridChanged = true;
+            }
         }
 
         return gridChanged;
-    }
-
-    private int sortHorizontally (Tile t1, Tile t2) {
-        Vector3 t1Pos = t1.transform.position;
-        Vector3 t2Pos = t2.transform.position;
-
-        if (t1Pos.x > t2Pos.x) {
-            return -1;
-        } else if (t1Pos.x < t2Pos.x) {
-            return 1;
-        }
-        return 0;
-    }
-
-    private int sortVertically (Tile t1, Tile t2) {
-        Vector3 t1Pos = t1.transform.position;
-        Vector3 t2Pos = t2.transform.position;
-
-        if (t1Pos.y > t2Pos.y) {
-            return -1;
-        } else if (t1Pos.y < t2Pos.y) {
-            return 1;
-        }
-        return 0;
     }
 
     private Vector2Int DisplaceTile (Tile tile, Enums.Direction direction) {
@@ -131,8 +112,7 @@ public class Grid2048 {
                     MergeTiles (tileInNextSquare, tile, directionVector);
                     return tileInNextSquare.coordinatesInGrid;
                 } else {
-                    MoveTile (tile, nextSquare - directionVector);
-                    return nextSquare;
+                    break;
                 }
             }
         }
@@ -150,6 +130,7 @@ public class Grid2048 {
         if (tileToMerge.Merge ()) {
             tiles.Remove (tileToRemove.coordinatesInGrid);
             freeSquares.Add (tileToRemove.coordinatesInGrid);
+            GameObject.Destroy (tileToRemove.gameObject);
         } else {
             Vector2Int newTileToRemoveCoordinates = tileToMerge.coordinatesInGrid - direction;
             MoveTile (tileToRemove, newTileToRemoveCoordinates);
@@ -158,6 +139,10 @@ public class Grid2048 {
     }
 
     private void MoveTile (Tile tile, Vector2Int newCoordinates) {
+        if (tile.coordinatesInGrid.Equals (newCoordinates)) {
+            return;
+        }
+
         tiles.Remove (tile.coordinatesInGrid);
 
         tiles.Remove (tile.coordinatesInGrid);
@@ -166,17 +151,19 @@ public class Grid2048 {
         freeSquares.Add (tile.coordinatesInGrid);
         freeSquares.Remove (newCoordinates);
 
-        tile.Move (newCoordinates.x, newCoordinates.y);
+        Vector2 newPosition = CalculatePosition (newCoordinates);
+        tile.Move (newCoordinates, newPosition);
     }
 
     public void SpawnTile (GameObject tilePrefab) {
         Vector2Int freeCoordinate = GetFreePosition ();
 
-        Vector2 position = CalculatePosition (freeCoordinate.x, freeCoordinate.y);
+        Vector2 position = CalculatePosition (freeCoordinate);
         Quaternion rotation = tilePrefab.transform.rotation;
         GameObject newTile = GameObject.Instantiate (tilePrefab, position, rotation, tilesContainer.transform);
         Tile tileComponent = newTile.GetComponent<Tile> ();
 
+        tileComponent.Move (freeCoordinate, position);
         tiles.Add (freeCoordinate, tileComponent);
         freeSquares.Remove (freeCoordinate);
     }
