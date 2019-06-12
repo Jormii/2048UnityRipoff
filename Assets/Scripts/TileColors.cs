@@ -28,6 +28,7 @@ public class TileColors {
     }
 
     private static Color NewColor (float r, float g, float b) {
-        return new Color (r, g, b, 255.0f) / 255.0f;
+        Vector3 rgb = new Vector3 (r, g, b) / 255.0f;
+        return new Color (rgb.x, rgb.y, rgb.z, 1.0f);
     }
 }
