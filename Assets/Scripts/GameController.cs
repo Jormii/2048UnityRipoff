@@ -12,12 +12,16 @@ public class GameController : MonoBehaviour {
     public GameObject squarePrefab;
     public GameObject tile2Prefab;
     public GameObject tile4Prefab;
+    public ScoreUI scoreUI;
+    public GameObject gameOverGameObject;
 
     private Grid2048 grid;
     private System.Random rng = new System.Random ();
 
     void Start () {
         grid = new Grid2048 (gridLength);
+        gameOverGameObject.SetActive (false);
+
         Vector2 origin = transform.position;
         Vector3 tileSize = tile2Prefab.GetComponent<MeshFilter> ().sharedMesh.bounds.size;
         grid.InitializeGrid (origin, offsetBetweenTiles, tileSize, squarePrefab);
@@ -28,8 +32,8 @@ public class GameController : MonoBehaviour {
     }
 
     void Update () {
-        if (grid.NoMovesPossible ()) {
-            Debug.LogWarning ("Game Over");
+        if (!grid.MovesPossible ()) {
+            gameOverGameObject.SetActive (true);
             return;
         }
 
@@ -56,6 +60,10 @@ public class GameController : MonoBehaviour {
     private void SpawnTile () {
         GameObject tilePrefab = (rng.NextDouble () < tile2SpawnChance) ? tile2Prefab : tile4Prefab;
         grid.SpawnTile (tilePrefab);
+    }
+
+    public void IncrementScore (int amount) {
+        scoreUI.IncrementScore (amount);
     }
 
 }

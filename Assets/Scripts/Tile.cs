@@ -10,10 +10,12 @@ public class Tile : MonoBehaviour {
 
     private TextMeshPro tileText;
     private Material tileMaterial;
+    private GameController gameController;
 
     void Start () {
         tileText = GetComponentInChildren<TextMeshPro> ();
         tileMaterial = GetComponent<Renderer> ().material;
+        gameController = GameObject.FindGameObjectWithTag ("GameController").GetComponent<GameController> ();
         UpdateTile ();
     }
 
@@ -32,6 +34,7 @@ public class Tile : MonoBehaviour {
         }
 
         value += value;
+        gameController.IncrementScore (value);
         UpdateTile ();
         return true;
     }
