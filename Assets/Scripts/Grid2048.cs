@@ -6,33 +6,63 @@ using UnityEngine;
 public class Grid2048 {
 
     private int gridLength;
-    private Dictionary<Vector2Int, Vector2> squarePositions;
-    private Dictionary<Vector2, Tile> tiles;
-    private List<Vector2> freeSquares;
+    private Vector3 origin;
+    private Vector2 tile2DSize;
+    private float tileOffset;
+    private Dictionary<Vector2Int, Tile> tiles;
+    private List<Vector2Int> freeSquares;
     private System.Random rng;
+    private GameObject boardGameObject;
+    private GameObject squaresContainer;
+    private GameObject tilesContainer;
+    private readonly Dictionary<Enums.Direction, Vector2Int> directionVectors = new Dictionary<Enums.Direction, Vector2Int> { { Enums.Direction.Up, Vector2Int.up },
+        { Enums.Direction.Down, Vector2Int.down },
+        { Enums.Direction.Left, Vector2Int.left },
+        { Enums.Direction.Right, Vector2Int.right }
+    };
 
     public Grid2048 (int gridLength) {
         this.gridLength = gridLength;
 
         int gridLengthSquare = gridLength * gridLength;
-        squarePositions = new Dictionary<Vector2Int, Vector2> (gridLengthSquare);
-        tiles = new Dictionary<Vector2, Tile> (gridLengthSquare);
-        freeSquares = new List<Vector2> (gridLengthSquare);
+        tiles = new Dictionary<Vector2Int, Tile> (gridLengthSquare);
+        freeSquares = new List<Vector2Int> (gridLengthSquare);
         rng = new System.Random ();
+
+        boardGameObject = new GameObject ("Board");
+        squaresContainer = new GameObject ("Squares");
+        squaresContainer.transform.parent = boardGameObject.transform;
+        tilesContainer = new GameObject ("Tiles");
+        tilesContainer.transform.parent = boardGameObject.transform;
     }
 
-    public void InitializeGrid (Vector2 origin, float offset, Vector3 tileSize) {
-        Vector3 tile2DSize = new Vector3 (tileSize.x, tileSize.z, 0.0f) / 5.0f;
+    public void InitializeGrid (Vector2 origin, float offset, Vector3 tileSize, GameObject squarePrefab) {
+        this.origin = origin;
+        this.tile2DSize = new Vector2 (tileSize.x, tileSize.z) / 5.0f;
+        this.tileOffset = offset;
 
         for (int x = 0; x < gridLength; ++x) {
             for (int y = 0; y < gridLength; ++y) {
-                Vector2 position = new Vector2 (
-                    x * (origin.x + tile2DSize.x + offset),
-                    y * (origin.y + tile2DSize.y + offset));
+                Vector2 position = CalculatePosition (new Vector2Int (x, y));
+                freeSquares.Add (new Vector2Int (x, y));
 
-                squarePositions.Add (new Vector2Int (x, y), position);
-                freeSquares.Add (position);
+                Vector3 position3D = new Vector3 (position.x, position.y, 0.1f);
+                Quaternion rotation = squarePrefab.transform.rotation;
+                Transform parent = squaresContainer.transform;
+                GameObject.Instantiate (squarePrefab, position3D, rotation, parent);
             }
+        }
+    }
+
+    private Vector2 CalculatePosition (Vector2Int coordinates) {
+        return new Vector2 (
+            coordinates.x * (origin.x + tile2DSize.x + tileOffset),
+            coordinates.y * (origin.y + tile2DSize.y + tileOffset));
+    }
+
+    public void ResetGrid () {
+        foreach (Tile t in tiles.Values) {
+            t.Reset ();
         }
     }
 
@@ -43,28 +73,107 @@ public class Grid2048 {
 
         bool gridChanged = false;
 
-        List<Tile> tilesInGrid = new List<Tile>(tiles.Values);
-        tilesInGrid.Sort()  // Ordenar segun direction
+        List<Tile> sortedTiles = new List<Tile> (tiles.Values);
+        switch (direction) {
+            case Enums.Direction.Up:
+            case Enums.Direction.Down:
+                sortedTiles.Sort ((Tile t1, Tile t2) => Tile.sortVertically (t1, t2));
+                break;
+            case Enums.Direction.Left:
+            case Enums.Direction.Right:
+                sortedTiles.Sort ((Tile t1, Tile t2) => Tile.sortHorizontally (t1, t2));
+                break;
+        }
+
+        if (direction == Enums.Direction.Down || direction == Enums.Direction.Left) {
+            sortedTiles.Reverse ();
+        }
+
+        foreach (Tile t in sortedTiles) {
+            Vector2Int currentSquare = t.coordinatesInGrid;
+            Vector2Int nextSquare = DisplaceTile (t, direction);
+
+            if (!currentSquare.Equals (nextSquare)) {
+                gridChanged = true;
+            }
+        }
 
         return gridChanged;
     }
 
-    public void AddTile (Tile tile) {
-        Vector2 position = new Vector2 (tile.transform.position.x, tile.transform.position.y);
-        tiles.Add (position, tile);
+    private Vector2Int DisplaceTile (Tile tile, Enums.Direction direction) {
+        Vector2Int directionVector = directionVectors[direction];
+        Vector2Int nextSquare = tile.coordinatesInGrid + directionVector;
 
-        if (freeSquares.Contains (position)) {
-            freeSquares.Remove (position);
+        for (; CoordinateBelongsToGrid (nextSquare); nextSquare += directionVector) {
+            if (tiles.ContainsKey (nextSquare)) {
+                Tile tileInNextSquare = tiles[nextSquare];
+                if (tile.value == tileInNextSquare.value) {
+                    MergeTiles (tileInNextSquare, tile, directionVector);
+                    return tileInNextSquare.coordinatesInGrid;
+                } else {
+                    break;
+                }
+            }
         }
+
+        nextSquare -= directionVector;
+        MoveTile (tile, nextSquare);
+        return nextSquare;
     }
 
-    public Vector2 GetFreePosition () {
-        Vector2 position = freeSquares[rng.Next (freeSquares.Count)];
-        freeSquares.Remove (position);
-        return position;
+    private bool CoordinateBelongsToGrid (Vector2Int coordinate) {
+        return (coordinate.x >= 0 && coordinate.x < gridLength) && (coordinate.y >= 0 && coordinate.y < gridLength);
+    }
+
+    private void MergeTiles (Tile tileToMerge, Tile tileToRemove, Vector2Int direction) {
+        if (tileToMerge.Merge ()) {
+            tiles.Remove (tileToRemove.coordinatesInGrid);
+            freeSquares.Add (tileToRemove.coordinatesInGrid);
+            GameObject.Destroy (tileToRemove.gameObject);
+        } else {
+            Vector2Int newTileToRemoveCoordinates = tileToMerge.coordinatesInGrid - direction;
+            MoveTile (tileToRemove, newTileToRemoveCoordinates);
+        }
+
+    }
+
+    private void MoveTile (Tile tile, Vector2Int newCoordinates) {
+        if (tile.coordinatesInGrid.Equals (newCoordinates)) {
+            return;
+        }
+
+        tiles.Remove (tile.coordinatesInGrid);
+
+        tiles.Remove (tile.coordinatesInGrid);
+        tiles.Add (newCoordinates, tile);
+
+        freeSquares.Add (tile.coordinatesInGrid);
+        freeSquares.Remove (newCoordinates);
+
+        Vector2 newPosition = CalculatePosition (newCoordinates);
+        tile.Move (newCoordinates, newPosition);
+    }
+
+    public void SpawnTile (GameObject tilePrefab) {
+        Vector2Int freeCoordinate = GetFreePosition ();
+
+        Vector2 position = CalculatePosition (freeCoordinate);
+        Quaternion rotation = tilePrefab.transform.rotation;
+        GameObject newTile = GameObject.Instantiate (tilePrefab, position, rotation, tilesContainer.transform);
+        Tile tileComponent = newTile.GetComponent<Tile> ();
+
+        tileComponent.Move (freeCoordinate, position);
+        tiles.Add (freeCoordinate, tileComponent);
+        freeSquares.Remove (freeCoordinate);
+    }
+
+    private Vector2Int GetFreePosition () {
+        return freeSquares[rng.Next (freeSquares.Count)];
     }
 
     public bool NoMovesPossible () {
+        // TODO
         return false;
     }
 

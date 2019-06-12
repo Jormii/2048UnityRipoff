@@ -152,7 +152,9 @@ MonoBehaviour:
   gridLength: 4
   initialTiles: 2
   offsetBetweenTiles: 0.1
-  tile2SpawnChance: 0.5
+  tile2SpawnChance: 0.6
+  squarePrefab: {fileID: 1598644090014939082, guid: 88da47427d46e99d484395613ebf1c45,
+    type: 3}
   tile2Prefab: {fileID: 3854267946381588343, guid: 708f1746a4460994dbaa97c249fb8943,
     type: 3}
   tile4Prefab: {fileID: 5319266080020698070, guid: 0a53bd416a0130bb5a0da726995eb307,
