@@ -67,6 +67,10 @@ public class Grid2048 {
     }
 
     public bool MoveTiles (Enums.Direction direction) {
+        return MoveTiles (direction, true);
+    }
+
+    private bool MoveTiles (Enums.Direction direction, bool moveActually) {
         if (direction == Enums.Direction.None) {
             return false;
         }
@@ -91,7 +95,7 @@ public class Grid2048 {
 
         foreach (Tile t in sortedTiles) {
             Vector2Int currentSquare = t.coordinatesInGrid;
-            Vector2Int nextSquare = DisplaceTile (t, direction);
+            Vector2Int nextSquare = DisplaceTile (t, direction, moveActually);
 
             if (!currentSquare.Equals (nextSquare)) {
                 gridChanged = true;
@@ -101,7 +105,7 @@ public class Grid2048 {
         return gridChanged;
     }
 
-    private Vector2Int DisplaceTile (Tile tile, Enums.Direction direction) {
+    private Vector2Int DisplaceTile (Tile tile, Enums.Direction direction, bool moveActually) {
         Vector2Int directionVector = directionVectors[direction];
         Vector2Int nextSquare = tile.coordinatesInGrid + directionVector;
 
@@ -109,7 +113,9 @@ public class Grid2048 {
             if (tiles.ContainsKey (nextSquare)) {
                 Tile tileInNextSquare = tiles[nextSquare];
                 if (tile.value == tileInNextSquare.value) {
-                    MergeTiles (tileInNextSquare, tile, directionVector);
+                    if (moveActually) {
+                        MergeTiles (tileInNextSquare, tile, directionVector);
+                    }
                     return tileInNextSquare.coordinatesInGrid;
                 } else {
                     break;
@@ -118,7 +124,9 @@ public class Grid2048 {
         }
 
         nextSquare -= directionVector;
-        MoveTile (tile, nextSquare);
+        if (moveActually) {
+            MoveTile (tile, nextSquare);
+        }
         return nextSquare;
     }
 
@@ -172,9 +180,8 @@ public class Grid2048 {
         return freeSquares[rng.Next (freeSquares.Count)];
     }
 
-    public bool NoMovesPossible () {
-        // TODO
-        return false;
+    public bool MovesPossible () {
+        return MoveTiles (Enums.Direction.Up, false) || MoveTiles (Enums.Direction.Right, false);
     }
 
 }
