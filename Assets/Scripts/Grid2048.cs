@@ -2,16 +2,16 @@
 using System.Collections.Generic;
 using UnityEngine;
 
-[System.Serializable]
 public class Grid2048 {
 
     private int gridLength;
-    private Vector3 origin;
-    private Vector2 tile2DSize;
-    private float tileOffset;
+    private Vector2 gridOrigin;
+    private float squareOffset;
     private Dictionary<Vector2Int, Tile> tiles;
     private List<Vector2Int> freeSquares;
+
     private System.Random rng;
+    private GameObject squarePrefab;
     private GameObject boardGameObject;
     private GameObject squaresContainer;
     private GameObject tilesContainer;
@@ -21,30 +21,32 @@ public class Grid2048 {
         { Enums.Direction.Right, Vector2Int.right }
     };
 
-    public Grid2048 (int gridLength) {
+    public Grid2048 (int gridLength, float squareOffset, Vector2 gridOrigin, GameObject squarePrefab) {
         this.gridLength = gridLength;
+        this.squareOffset = squareOffset;
+        this.gridOrigin = gridOrigin;
+        this.squarePrefab = squarePrefab;
 
         int gridLengthSquare = gridLength * gridLength;
-        tiles = new Dictionary<Vector2Int, Tile> (gridLengthSquare);
-        freeSquares = new List<Vector2Int> (gridLengthSquare);
-        rng = new System.Random ();
+        this.tiles = new Dictionary<Vector2Int, Tile> (gridLengthSquare);
+        this.freeSquares = new List<Vector2Int> (gridLengthSquare);
+        this.rng = new System.Random ();
 
-        boardGameObject = new GameObject ("Board");
-        squaresContainer = new GameObject ("Squares");
-        squaresContainer.transform.parent = boardGameObject.transform;
-        tilesContainer = new GameObject ("Tiles");
-        tilesContainer.transform.parent = boardGameObject.transform;
+        this.boardGameObject = new GameObject ("Board");
+        this.squaresContainer = new GameObject ("Squares");
+        this.squaresContainer.transform.parent = boardGameObject.transform;
+        this.tilesContainer = new GameObject ("Tiles");
+        this.tilesContainer.transform.parent = boardGameObject.transform;
+
+        InitializeGrid ();
     }
 
-    public void InitializeGrid (Vector2 origin, float offset, Vector3 tileSize, GameObject squarePrefab) {
-        this.origin = origin;
-        this.tile2DSize = new Vector2 (tileSize.x, tileSize.z) / 5.0f;
-        this.tileOffset = offset;
-
+    private void InitializeGrid () {
         for (int x = 0; x < gridLength; ++x) {
             for (int y = 0; y < gridLength; ++y) {
-                Vector2 position = CalculatePosition (new Vector2Int (x, y));
-                freeSquares.Add (new Vector2Int (x, y));
+                Vector2Int coordinates = new Vector2Int (x, y);
+                Vector2 position = CalculatePosition (coordinates);
+                freeSquares.Add (coordinates);
 
                 Vector3 position3D = new Vector3 (position.x, position.y, 0.1f);
                 Quaternion rotation = squarePrefab.transform.rotation;
@@ -56,8 +58,31 @@ public class Grid2048 {
 
     private Vector2 CalculatePosition (Vector2Int coordinates) {
         return new Vector2 (
-            coordinates.x * (origin.x + tile2DSize.x + tileOffset),
-            coordinates.y * (origin.y + tile2DSize.y + tileOffset));
+            CalculateXPosition (coordinates.x),
+            CalculateYPosition (coordinates.y));
+    }
+
+    private float CalculateXPosition (int x) {
+        float weight = (float) x / (float) (gridLength - 1);
+        float origin = gridOrigin.x;
+        int length = gridLength;
+        float size = squarePrefab.GetComponent<Renderer> ().bounds.size.x;
+
+        return CalculatePositionSquare (weight, origin, length, size);
+    }
+
+    private float CalculateYPosition (int h) {
+        float weight = (float) h / (float) (gridLength - 1);
+        float origin = gridOrigin.y;
+        int length = gridLength;
+        float size = squarePrefab.GetComponent<Renderer> ().bounds.size.y;
+
+        return CalculatePositionSquare (weight, origin, length, size);
+    }
+
+    private float CalculatePositionSquare (float weight, float origin, int length, float size) {
+        float constant = ((length - 1) / 2.0f) * (size + squareOffset);
+        return (1 - weight) * (origin - constant) + weight * (origin + constant);
     }
 
     public void ResetGrid () {
@@ -180,8 +205,9 @@ public class Grid2048 {
         return freeSquares[rng.Next (freeSquares.Count)];
     }
 
-    public bool MovesPossible () {
-        return MoveTiles (Enums.Direction.Up, false) || MoveTiles (Enums.Direction.Right, false);
+    public bool MovementsAvailable () {
+        return MoveTiles (Enums.Direction.Up, false) || MoveTiles (Enums.Direction.Right, false) ||
+            MoveTiles (Enums.Direction.Down, false) || MoveTiles (Enums.Direction.Left, false);
     }
 
 }

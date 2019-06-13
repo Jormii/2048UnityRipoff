@@ -3,15 +3,20 @@ using System.Collections.Generic;
 using TMPro;
 using UnityEngine;
 
-public class GameController : MonoBehaviour {
-
+[System.Serializable]
+public class GridProperties {
     public int gridLength = 4;
     public int initialTiles = 2;
-    public float offsetBetweenTiles = 0.1f;
-    public double tile2SpawnChance = 0.8f;
+    public float squareOffset = 0.1f;
+    public double tile2SpawnChance = 0.7;
     public GameObject squarePrefab;
     public GameObject tile2Prefab;
     public GameObject tile4Prefab;
+}
+
+public class GameController : MonoBehaviour {
+
+    public GridProperties gridProperties = new GridProperties ();
     public ScoreUI scoreUI;
     public GameObject gameOverGameObject;
 
@@ -19,24 +24,33 @@ public class GameController : MonoBehaviour {
     private System.Random rng = new System.Random ();
 
     void Start () {
-        grid = new Grid2048 (gridLength);
         gameOverGameObject.SetActive (false);
 
-        Vector2 origin = transform.position;
-        Vector3 tileSize = tile2Prefab.GetComponent<MeshFilter> ().sharedMesh.bounds.size;
-        grid.InitializeGrid (origin, offsetBetweenTiles, tileSize, squarePrefab);
+        Vector2 gridOrigin = Camera.main.transform.position;
+        Camera.main.orthographicSize = gridProperties.gridLength + 1;
+        grid = new Grid2048 (gridProperties.gridLength, gridProperties.squareOffset, gridOrigin, gridProperties.squarePrefab);
 
-        for (int i = 0; i < initialTiles; ++i) {
+        for (int i = 0; i < gridProperties.initialTiles; ++i) {
             SpawnTile ();
         }
     }
 
     void Update () {
-        if (!grid.MovesPossible ()) {
+        if (!grid.MovementsAvailable ()) {
             gameOverGameObject.SetActive (true);
-            return;
+            GameObject.Destroy (gameObject); // Problema ?
         }
 
+        Enums.Direction inputDirection = GetPlayerInput ();
+        if (inputDirection != Enums.Direction.None) {
+            grid.ResetGrid ();
+            if (grid.MoveTiles (inputDirection)) {
+                SpawnTile ();
+            }
+        }
+    }
+
+    private Enums.Direction GetPlayerInput () {
         Enums.Direction inputDirection = Enums.Direction.None;
 
         if (Input.GetKeyDown (KeyCode.UpArrow)) {
@@ -49,16 +63,11 @@ public class GameController : MonoBehaviour {
             inputDirection = Enums.Direction.Right;
         }
 
-        if (inputDirection != Enums.Direction.None) {
-            grid.ResetGrid ();
-            if (grid.MoveTiles (inputDirection)) {
-                SpawnTile ();
-            }
-        }
+        return inputDirection;
     }
 
     private void SpawnTile () {
-        GameObject tilePrefab = (rng.NextDouble () < tile2SpawnChance) ? tile2Prefab : tile4Prefab;
+        GameObject tilePrefab = (rng.NextDouble () < gridProperties.tile2SpawnChance) ? gridProperties.tile2Prefab : gridProperties.tile4Prefab;
         grid.SpawnTile (tilePrefab);
     }
 

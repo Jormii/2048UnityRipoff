@@ -2,6 +2,7 @@
 using UnityEngine;
 
 public class Tile : MonoBehaviour {
+
     public int initialValue;
 
     private int realValue;
@@ -25,7 +26,8 @@ public class Tile : MonoBehaviour {
 
     public void Move (Vector2Int newCoordinates, Vector2 newPosition) {
         coordinatesInGrid.Set (newCoordinates.x, newCoordinates.y);
-        transform.position = new Vector3 (newPosition.x, newPosition.y, transform.position.z);
+        Vector3 newPosition3D = new Vector3 (newPosition.x, newPosition.y, transform.position.z);
+        transform.position = newPosition3D;
     }
 
     public bool MergeTile () {
