@@ -17,4 +17,13 @@ public class ScoreUI : MonoBehaviour {
         score += amount;
         scoreText.text = string.Format ("{0}{1}", baseText, score);
     }
+
+    /*
+    Properties
+     */
+
+    public int Score {
+        get => score;
+        set => score = value;
+    }
 }
