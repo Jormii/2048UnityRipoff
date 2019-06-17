@@ -32,6 +32,7 @@ public class Grid2048 {
         this.freeSquares = new List<Vector2Int> (gridLengthSquare);
         this.rng = new System.Random ();
 
+        // The following GameObjects are created in order to maintain a structure in the scene tree.
         this.boardGameObject = new GameObject ("Board");
         this.squaresContainer = new GameObject ("Squares");
         this.squaresContainer.transform.parent = boardGameObject.transform;
