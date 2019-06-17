@@ -58,11 +58,11 @@
      <Compile Include="Assets\Scripts\Enums.cs" />
      <Compile Include="Assets\Scripts\GameController.cs" />
      <Compile Include="Assets\Scripts\Grid2048.cs" />
+     <Compile Include="Assets\Scripts\Interface.cs" />
      <Compile Include="Assets\Scripts\ScoreUI.cs" />
      <Compile Include="Assets\Scripts\Snapshot.cs" />
      <Compile Include="Assets\Scripts\Tile.cs" />
      <Compile Include="Assets\Scripts\TileColors.cs" />
-     <Compile Include="Assets\Scripts\UndoButton.cs" />
      <None Include="Assets\TextMesh Pro\Resources\Shaders\TMP_SDF-Surface-Mobile.shader" />
      <None Include="Assets\TextMesh Pro\Resources\LineBreaking Leading Characters.txt" />
      <None Include="Assets\TextMesh Pro\Resources\Shaders\TMPro_Properties.cginc" />
