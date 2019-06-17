@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using UnityEngine;
 
-public class UndoButton : MonoBehaviour {
+public class Interface : MonoBehaviour {
 
     private GameController gameController;
 
@@ -12,6 +12,10 @@ public class UndoButton : MonoBehaviour {
 
     public void Undo () {
         gameController.Undo ();
+    }
+
+    public void Restart () {
+        gameController.Restart ();
     }
 
 }

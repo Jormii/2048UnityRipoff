@@ -94,6 +94,10 @@ public class GameController : MonoBehaviour {
         scoreUI.Restart ();
         snapshot.Restart ();
 
+        for (int i = 0; i < gridProperties.initialTiles; ++i) {
+            SpawnTile ();
+        }
+
         gameOverGameObject.SetActive (false);
         snapshot = null;
     }
