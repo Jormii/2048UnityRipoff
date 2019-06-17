@@ -21,6 +21,7 @@ public class GameController : MonoBehaviour {
     public GameObject gameOverGameObject;
 
     private Grid2048 grid;
+    private Snapshot snapshot;
     private System.Random rng = new System.Random ();
 
     void Start () {
@@ -44,6 +45,7 @@ public class GameController : MonoBehaviour {
         Enums.Direction inputDirection = GetPlayerInput ();
         if (inputDirection != Enums.Direction.None) {
             grid.ResetGrid ();
+            TakeSnapshot ();
             if (grid.MoveTiles (inputDirection)) {
                 SpawnTile ();
             }
@@ -73,6 +75,18 @@ public class GameController : MonoBehaviour {
 
     public void IncrementScore (int amount) {
         scoreUI.IncrementScore (amount);
+    }
+
+    private void TakeSnapshot () {
+        snapshot = Snapshot.TakeSnapshot (grid, scoreUI.Score);
+    }
+
+    public void Undo () {
+        if (snapshot != null) {
+            grid.Undo (snapshot);
+            scoreUI.Score = snapshot.Score;
+            snapshot = null;
+        }
     }
 
 }

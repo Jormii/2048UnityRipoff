@@ -210,4 +210,25 @@ public class Grid2048 {
             MoveTiles (Enums.Direction.Down, false) || MoveTiles (Enums.Direction.Left, false);
     }
 
+    public void Undo (Snapshot snapshot) {
+        foreach (Tile t in tiles.Values) {
+            GameObject.Destroy (t.gameObject);
+        }
+
+        tiles = new Dictionary<Vector2Int, Tile> (snapshot.Tiles);
+        freeSquares = new List<Vector2Int> (snapshot.FreeSquares);
+    }
+
+    /*
+    Properties
+     */
+
+    public Dictionary<Vector2Int, Tile> Tiles {
+        get => tiles;
+    }
+
+    public List<Vector2Int> FreeSquares {
+        get => freeSquares;
+    }
+
 }
