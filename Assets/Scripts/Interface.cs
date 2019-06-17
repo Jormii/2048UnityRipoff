@@ -1,13 +1,15 @@
-﻿using System.Collections;
-using System.Collections.Generic;
-using UnityEngine;
+﻿using UnityEngine;
+using UnityEngine.SceneManagement;
 
 public class Interface : MonoBehaviour {
 
     private GameController gameController;
 
     private void Start () {
-        gameController = GameObject.FindGameObjectWithTag ("GameController").GetComponent<GameController> ();
+        GameObject gameControllerGO = GameObject.FindGameObjectWithTag ("GameController");
+        if (gameController != null) {
+            gameController = gameControllerGO.GetComponent<GameController> ();
+        }
     }
 
     public void Undo () {
@@ -16,6 +18,10 @@ public class Interface : MonoBehaviour {
 
     public void Restart () {
         gameController.Restart ();
+    }
+
+    public void StartGame (string modeName) {
+        SceneManager.LoadScene (modeName);
     }
 
 }

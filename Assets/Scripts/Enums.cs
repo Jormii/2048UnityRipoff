@@ -11,4 +11,12 @@ public class Enums {
         Right,
         None
         };
+
+        [System.Serializable]
+        public enum Mode {
+        Mode3x3,
+        Mode4x4,
+        Mode5x5,
+        Mode6x6
+    }
 }
