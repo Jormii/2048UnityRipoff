@@ -78,15 +78,24 @@ public class GameController : MonoBehaviour {
     }
 
     private void TakeSnapshot () {
-        snapshot = Snapshot.TakeSnapshot (grid, scoreUI.Score);
+        snapshot = new Snapshot (grid, scoreUI.Score);
     }
 
     public void Undo () {
         if (snapshot != null) {
             grid.Undo (snapshot);
-            scoreUI.Score = snapshot.Score;
+            scoreUI.Undo (snapshot);
             snapshot = null;
         }
+    }
+
+    public void Restart () {
+        grid.Restart ();
+        scoreUI.Restart ();
+        snapshot.Restart ();
+
+        gameOverGameObject.SetActive (false);
+        snapshot = null;
     }
 
 }

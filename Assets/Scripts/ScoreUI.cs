@@ -10,12 +10,26 @@ public class ScoreUI : MonoBehaviour {
 
     void Start () {
         scoreText = GetComponent<TextMeshProUGUI> ();
-        scoreText.text = string.Format ("{0}{1}", baseText, score);
+        scoreText.text = FormatScore (this);
     }
 
     public void IncrementScore (int amount) {
         score += amount;
-        scoreText.text = string.Format ("{0}{1}", baseText, score);
+        scoreText.text = FormatScore (this);
+    }
+
+    public void Undo (Snapshot snapshot) {
+        score = snapshot.Score;
+        scoreText.text = FormatScore (this);
+    }
+
+    public void Restart () {
+        score = 0;
+        scoreText.text = FormatScore (this);
+    }
+
+    public string FormatScore (ScoreUI scoreUI) {
+        return string.Format ("{0}{1}", baseText, score);
     }
 
     /*

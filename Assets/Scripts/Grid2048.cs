@@ -216,12 +216,29 @@ public class Grid2048 {
         }
 
         tiles = new Dictionary<Vector2Int, Tile> (snapshot.Tiles);
+        foreach (Tile t in tiles.Values) {
+            t.gameObject.SetActive (true);
+            t.gameObject.transform.parent = tilesContainer.transform;
+        }
         freeSquares = new List<Vector2Int> (snapshot.FreeSquares);
+    }
+
+    public void Restart () {
+        foreach (KeyValuePair<Vector2Int, Tile> entry in tiles) {
+            GameObject.Destroy (entry.Value.gameObject);
+            freeSquares.Add (entry.Key);
+        }
+
+        tiles.Clear ();
     }
 
     /*
     Properties
      */
+
+    public int GridLength {
+        get => gridLength;
+    }
 
     public Dictionary<Vector2Int, Tile> Tiles {
         get => tiles;

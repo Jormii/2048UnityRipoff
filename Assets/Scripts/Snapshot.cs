@@ -7,21 +7,32 @@ public class Snapshot {
     private Dictionary<Vector2Int, Tile> tiles;
     private List<Vector2Int> freeSquares;
     private int score;
+    private static GameObject snapshotContainer = new GameObject ("SnapshotContainer");
 
-    private Snapshot (Grid2048 grid, int score) {
-        this.tiles = new Dictionary<Vector2Int, Tile> (grid.Tiles);
+    public Snapshot (Grid2048 grid, int score) {
+        this.tiles = new Dictionary<Vector2Int, Tile> (grid.GridLength);
         this.freeSquares = new List<Vector2Int> (grid.FreeSquares);
         this.score = score;
-    }
 
-    public static Snapshot TakeSnapshot (Grid2048 grid, int score) {
-        Snapshot snapshot = new Snapshot (grid, score);
-
-        foreach (Tile t in snapshot.tiles.Values) {
-            t.gameObject.SetActive (false);
+        for (int c = 0; c < snapshotContainer.transform.childCount; ++c) {
+            GameObject child = snapshotContainer.transform.GetChild (c).gameObject;
+            GameObject.Destroy (child);
         }
 
-        return snapshot;
+        foreach (KeyValuePair<Vector2Int, Tile> entry in grid.Tiles) {
+            GameObject clonedGameObject = entry.Value.Clone ();
+            clonedGameObject.SetActive (false);
+            clonedGameObject.transform.parent = snapshotContainer.transform;
+            Tile tileComponent = clonedGameObject.GetComponent<Tile> ();
+            tiles.Add (entry.Key, tileComponent);
+        }
+    }
+
+    public void Restart() {
+        for (int c = 0; c < snapshotContainer.transform.childCount; ++c) {
+            GameObject child = snapshotContainer.transform.GetChild (c).gameObject;
+            GameObject.Destroy (child);
+        }
     }
 
     /*

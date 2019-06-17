@@ -13,7 +13,10 @@ public class Tile : MonoBehaviour {
     private GameController gameController;
 
     private void Start () {
-        realValue = initialValue;
+        if (realValue == 0) {
+            realValue = initialValue;
+        }
+        
         tileText = GetComponentInChildren<TextMeshPro> ();
         tileMaterial = GetComponent<Renderer> ().material;
         gameController = GameObject.FindGameObjectWithTag ("GameController").GetComponent<GameController> ();
@@ -44,6 +47,7 @@ public class Tile : MonoBehaviour {
     private void UpdateTile () {
         tileText.text = realValue.ToString ();
         tileMaterial.color = TileColors.GetTileColor (realValue);
+        name = GetName (this);
         mergedThisTurn = true;
     }
 
@@ -69,6 +73,21 @@ public class Tile : MonoBehaviour {
             return 1;
         }
         return 0;
+    }
+
+    public GameObject Clone () {
+        GameObject clone = GameObject.Instantiate (gameObject);
+        Tile tileComponent = clone.GetComponent<Tile> ();
+
+        tileComponent.realValue = realValue;
+        tileComponent.mergedThisTurn = mergedThisTurn;
+        tileComponent.coordinatesInGrid = new Vector2Int (coordinatesInGrid.x, coordinatesInGrid.y);
+
+        return clone;
+    }
+
+    public static string GetName (Tile tile) {
+        return string.Format ("{0} = {1}", tile.coordinatesInGrid, tile.realValue);
     }
 
     public override string ToString () {
