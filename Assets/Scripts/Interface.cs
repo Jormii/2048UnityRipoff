@@ -7,7 +7,7 @@ public class Interface : MonoBehaviour {
 
     private void Start () {
         GameObject gameControllerGO = GameObject.FindGameObjectWithTag ("GameController");
-        if (gameController != null) {
+        if (gameControllerGO != null) {
             gameController = gameControllerGO.GetComponent<GameController> ();
         }
     }
@@ -20,8 +20,8 @@ public class Interface : MonoBehaviour {
         gameController.Restart ();
     }
 
-    public void StartGame (string modeName) {
-        SceneManager.LoadScene (modeName);
+    public void ChangeScene (string sceneName) {
+        SceneManager.LoadScene (sceneName);
     }
 
 }

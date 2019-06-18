@@ -189,7 +189,9 @@ public class GameController : MonoBehaviour {
     public void Restart () {
         grid.Restart ();
         scoreUI.Restart ();
-        snapshot.Restart ();
+        if (snapshot != null) {
+            snapshot.Restart ();
+        }
 
         for (int i = 0; i < gridProperties.initialTiles; ++i) {
             SpawnTile ();
