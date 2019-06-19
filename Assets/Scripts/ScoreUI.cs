@@ -6,30 +6,32 @@ using UnityEngine;
 public class ScoreUI : MonoBehaviour {
     private int score = 0;
     private TextMeshProUGUI scoreText;
-    private readonly string baseText = "Score: ";
 
     void Start () {
         scoreText = GetComponent<TextMeshProUGUI> ();
-        scoreText.text = FormatScore (this);
+        UpdateScoreText ();
     }
 
     public void IncrementScore (int amount) {
         score += amount;
-        scoreText.text = FormatScore (this);
+        UpdateScoreText ();
     }
 
     public void Undo (Snapshot snapshot) {
+        RollbackToSnapshot (snapshot);
+        UpdateScoreText ();
+    }
+
+    private void RollbackToSnapshot (Snapshot snapshot) {
         score = snapshot.Score;
-        scoreText.text = FormatScore (this);
     }
 
     public void Restart () {
         score = 0;
-        scoreText.text = FormatScore (this);
     }
 
-    public string FormatScore (ScoreUI scoreUI) {
-        return string.Format ("{0}{1}", baseText, score);
+    private void UpdateScoreText () {
+        scoreText.text = string.Format ("Score: {0}", score);
     }
 
     /*

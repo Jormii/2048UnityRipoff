@@ -7,47 +7,46 @@ public class Tile : MonoBehaviour {
 
     private int realValue;
     private bool mergedThisTurn;
-    private Vector2Int coordinatesInGrid = new Vector2Int ();
+    private Vector2Int coordinateInGrid = new Vector2Int ();
     private TextMeshPro tileText;
     private Material tileMaterial;
     private GameController gameController;
 
     private void Start () {
-        if (realValue == 0) {
+        if (TileWasJustCreated ()) {
             realValue = initialValue;
         }
-        
+
         tileText = GetComponentInChildren<TextMeshPro> ();
         tileMaterial = GetComponent<Renderer> ().material;
         gameController = GameObject.FindGameObjectWithTag ("GameController").GetComponent<GameController> ();
         UpdateTile ();
     }
 
+    private bool TileWasJustCreated () {
+        return realValue == 0;
+    }
+
     public void ResetTile () {
         mergedThisTurn = false;
     }
 
-    public void Move (Vector2Int newCoordinates, Vector2 newPosition) {
-        coordinatesInGrid.Set (newCoordinates.x, newCoordinates.y);
+    public void Move (Vector2Int newCoordinate, Vector2 newPosition) {
+        coordinateInGrid.Set (newCoordinate.x, newCoordinate.y);
         Vector3 newPosition3D = new Vector3 (newPosition.x, newPosition.y, transform.position.z);
         transform.position = newPosition3D;
     }
 
-    public bool MergeTile () {
-        if (mergedThisTurn) {
-            return false;
-        }
-
+    public void MergeTile () {
         realValue += realValue;
         gameController.IncrementScore (realValue);
         UpdateTile ();
-        return true;
     }
 
     private void UpdateTile () {
         tileText.text = realValue.ToString ();
         tileMaterial.color = TileColors.GetTileColor (realValue);
-        name = GetName (this);
+        name = string.Format ("{0} = {1}", coordinateInGrid, realValue);
         mergedThisTurn = true;
     }
 
@@ -81,17 +80,13 @@ public class Tile : MonoBehaviour {
 
         tileComponent.realValue = realValue;
         tileComponent.mergedThisTurn = mergedThisTurn;
-        tileComponent.coordinatesInGrid = new Vector2Int (coordinatesInGrid.x, coordinatesInGrid.y);
+        tileComponent.coordinateInGrid = new Vector2Int (coordinateInGrid.x, coordinateInGrid.y);
 
         return clone;
     }
 
-    public static string GetName (Tile tile) {
-        return string.Format ("{0} = {1}", tile.coordinatesInGrid, tile.realValue);
-    }
-
     public override string ToString () {
-        return string.Format ("Tile at coordinates {0}, with value {1}", coordinatesInGrid, realValue);
+        return string.Format ("Tile at coordinate {0}, with value {1}", coordinateInGrid, realValue);
     }
 
     /*
@@ -102,8 +97,12 @@ public class Tile : MonoBehaviour {
         get => realValue;
     }
 
-    public Vector2Int Coordinates {
-        get => new Vector2Int (coordinatesInGrid.x, coordinatesInGrid.y);
+    public Vector2Int Coordinate {
+        get => new Vector2Int (coordinateInGrid.x, coordinateInGrid.y);
+    }
+
+    public bool MergedThisTurn {
+        get => mergedThisTurn;
     }
 
 }

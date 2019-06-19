@@ -17,7 +17,7 @@ public class Interface : MonoBehaviour {
     }
 
     public void Restart () {
-        gameController.Restart ();
+        gameController.RestartGame ();
     }
 
     public void ChangeScene (string sceneName) {

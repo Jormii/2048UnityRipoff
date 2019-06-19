@@ -1,5 +1,4 @@
-﻿using System.Collections;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using UnityEngine;
 
 public class Snapshot {
@@ -14,13 +13,14 @@ public class Snapshot {
         this.freeSquares = new List<Vector2Int> (grid.FreeSquares);
         this.score = score;
 
-        for (int c = 0; c < snapshotContainer.transform.childCount; ++c) {
-            GameObject child = snapshotContainer.transform.GetChild (c).gameObject;
-            GameObject.Destroy (child);
-        }
+        DestroySnapshotTiles ();
+        SnapshotTileGameObjects (grid);
+    }
 
+    private void SnapshotTileGameObjects (Grid2048 grid) {
         foreach (KeyValuePair<Vector2Int, Tile> entry in grid.Tiles) {
             GameObject clonedGameObject = entry.Value.Clone ();
+
             clonedGameObject.SetActive (false);
             clonedGameObject.transform.parent = snapshotContainer.transform;
             Tile tileComponent = clonedGameObject.GetComponent<Tile> ();
@@ -28,11 +28,15 @@ public class Snapshot {
         }
     }
 
-    public void Restart() {
+    private static void DestroySnapshotTiles () {
         for (int c = 0; c < snapshotContainer.transform.childCount; ++c) {
             GameObject child = snapshotContainer.transform.GetChild (c).gameObject;
             GameObject.Destroy (child);
         }
+    }
+
+    public void Restart () {
+        DestroySnapshotTiles ();
     }
 
     /*
