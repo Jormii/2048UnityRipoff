@@ -27,7 +27,6 @@ public class GameController : MonoBehaviour {
         InitializeGrid ();
     }
 
-    // TODO
     private void InitializeGrid () {
         Camera mainCamera = Camera.main;
 
@@ -123,6 +122,7 @@ public class GameController : MonoBehaviour {
         if (SnapshotExists ()) {
             grid.Undo (snapshot);
             scoreUI.Undo (snapshot);
+            gameOverGameObject.SetActive (false);
             snapshot = null;
         }
     }

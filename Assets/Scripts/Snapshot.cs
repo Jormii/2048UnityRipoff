@@ -6,7 +6,7 @@ public class Snapshot {
     private Dictionary<Vector2Int, Tile> tiles;
     private List<Vector2Int> freeSquares;
     private int score;
-    private static GameObject snapshotContainer = new GameObject ("SnapshotContainer");
+    private static GameObject snapshotContainer;
 
     public Snapshot (Grid2048 grid, int score) {
         this.tiles = new Dictionary<Vector2Int, Tile> (grid.GridLength);
@@ -29,6 +29,10 @@ public class Snapshot {
     }
 
     private static void DestroySnapshotTiles () {
+        if (snapshotContainer == null) {
+            snapshotContainer = new GameObject ("SnapshotContainer");
+        }
+
         for (int c = 0; c < snapshotContainer.transform.childCount; ++c) {
             GameObject child = snapshotContainer.transform.GetChild (c).gameObject;
             GameObject.Destroy (child);

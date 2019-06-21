@@ -24,10 +24,12 @@ public class ScoreUI : MonoBehaviour {
 
     private void RollbackToSnapshot (Snapshot snapshot) {
         score = snapshot.Score;
+        UpdateScoreText ();
     }
 
     public void Restart () {
         score = 0;
+        UpdateScoreText ();
     }
 
     private void UpdateScoreText () {

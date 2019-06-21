@@ -183,7 +183,7 @@ public class Grid2048 {
 
     private bool MergeTiles (Tile tileToMerge, Tile tileToRemove) {
         if (checkingIfMovementsAreAvailable) {
-            return false;
+            return true;
         }
 
         tileToMerge.MergeTile ();
@@ -194,12 +194,12 @@ public class Grid2048 {
     }
 
     private bool MoveTile (Tile tile, Vector2Int newCoordinate) {
-        if (checkingIfMovementsAreAvailable) {
+        if (NewCoordinateIsTilesCoordinate (tile, newCoordinate)) {
             return false;
         }
 
-        if (NewCoordinateIsTilesCoordinate (tile, newCoordinate)) {
-            return false;
+        if (checkingIfMovementsAreAvailable) {
+            return true;
         }
 
         tiles.Remove (tile.Coordinate);
@@ -267,10 +267,10 @@ public class Grid2048 {
     public void Restart () {
         DestroyTileGameObjects ();
 
-        tiles.Clear ();
-        foreach (KeyValuePair<Vector2Int, Tile> entry in tiles) {
-            freeSquares.Add (entry.Key);
+        foreach (Vector2Int previouslyOccupiedSquared in tiles.Keys) {
+            freeSquares.Add (previouslyOccupiedSquared);
         }
+        tiles.Clear ();
     }
 
     /*
