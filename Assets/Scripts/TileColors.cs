@@ -20,11 +20,11 @@ public class TileColors {
     };
 
     public static Color GetTileColor (int tileValue) {
-        if (tileValue > MAX_VALUE) {
-            return postMaxValueColor;
-        }
+        return (KeyExistsInColorMap (tileValue)) ? colors[tileValue] : postMaxValueColor;
+    }
 
-        return colors[tileValue];
+    private static bool KeyExistsInColorMap (int tileValue) {
+        return tileValue < MAX_VALUE;
     }
 
     private static Color NewColor (float r, float g, float b) {

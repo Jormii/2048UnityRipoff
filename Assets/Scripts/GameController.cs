@@ -1,10 +1,8 @@
-﻿using System.Collections;
-using System.Collections.Generic;
-using TMPro;
-using UnityEngine;
+﻿using UnityEngine;
 
 [System.Serializable]
 public class GridProperties {
+
     public int gridLength = 4;
     public int initialTiles = 2;
     public float squareOffset = 0.1f;
@@ -26,51 +24,90 @@ public class GameController : MonoBehaviour {
 
     void Start () {
         gameOverGameObject.SetActive (false);
+        InitializeGrid ();
+    }
 
-        Vector2 gridOrigin = Camera.main.transform.position;
-        Camera.main.orthographicSize = gridProperties.gridLength + 1;
-        grid = new Grid2048 (gridProperties.gridLength, gridProperties.squareOffset, gridOrigin, gridProperties.squarePrefab);
+    private void InitializeGrid () {
+        Camera mainCamera = Camera.main;
 
+        Vector2 gridOrigin = mainCamera.transform.position;
+        mainCamera.orthographicSize = gridProperties.gridLength + 1; // Camera size is adjusted so tiles stay in frame.
+        grid = new Grid2048 (gridProperties, gridOrigin);
+
+        SpawnTiles ();
+    }
+
+    private void SpawnTiles () {
         for (int i = 0; i < gridProperties.initialTiles; ++i) {
             SpawnTile ();
         }
     }
 
+    private void SpawnTile () {
+        grid.SpawnTileAtRandomPosition (GetTileToSpawn ());
+    }
+
+    private GameObject GetTileToSpawn () {
+        return (Spawn2Tile ()) ? gridProperties.tile2Prefab : gridProperties.tile4Prefab;
+    }
+
+    private bool Spawn2Tile () {
+        return rng.NextDouble () < gridProperties.tile2SpawnChance;
+    }
+
     void Update () {
-        if (!grid.MovementsAvailable ()) {
-            gameOverGameObject.SetActive (true);
-            GameObject.Destroy (gameObject); // Problema ?
+        if (GameOverStateReached ()) {
+            GameOver ();
+            return;
         }
 
+        HandlePlayerInput ();
+    }
+
+    private bool GameOverStateReached () {
+        return !grid.ThereAreMovementsAvailable ();
+    }
+
+    private void GameOver () {
+        gameOverGameObject.SetActive (true);
+    }
+
+    private void HandlePlayerInput () {
         Enums.Direction inputDirection = GetPlayerInput ();
         if (inputDirection != Enums.Direction.None) {
-            grid.ResetGrid ();
-            TakeSnapshot ();
-            if (grid.MoveTiles (inputDirection)) {
-                SpawnTile ();
-            }
+            MoveTiles (inputDirection);
+        }
+    }
+
+    private void MoveTiles (Enums.Direction direction) {
+        MovementSetup ();
+        bool gridChanged = grid.MoveTilesInGrid (direction);
+        PostMovement (gridChanged);
+    }
+
+    private void MovementSetup () {
+        grid.ResetGrid ();
+        TakeSnapshot ();
+    }
+
+    private void PostMovement (bool gridChanged) {
+        if (gridChanged) {
+            SpawnTile ();
         }
     }
 
     private Enums.Direction GetPlayerInput () {
-        Enums.Direction inputDirection = Enums.Direction.None;
-
         if (Input.GetKeyDown (KeyCode.UpArrow)) {
-            inputDirection = Enums.Direction.Up;
+            return Enums.Direction.Up;
         } else if (Input.GetKeyDown (KeyCode.DownArrow)) {
-            inputDirection = Enums.Direction.Down;
+            return Enums.Direction.Down;
         } else if (Input.GetKeyDown (KeyCode.LeftArrow)) {
-            inputDirection = Enums.Direction.Left;
+            return Enums.Direction.Left;
         } else if (Input.GetKeyDown (KeyCode.RightArrow)) {
-            inputDirection = Enums.Direction.Right;
+            return Enums.Direction.Right;
         }
 
-        return inputDirection;
-    }
-
-    private void SpawnTile () {
-        GameObject tilePrefab = (rng.NextDouble () < gridProperties.tile2SpawnChance) ? gridProperties.tile2Prefab : gridProperties.tile4Prefab;
-        grid.SpawnTile (tilePrefab);
+        return Enums.Direction.None;
     }
 
     public void IncrementScore (int amount) {
@@ -82,21 +119,26 @@ public class GameController : MonoBehaviour {
     }
 
     public void Undo () {
-        if (snapshot != null) {
+        if (SnapshotExists ()) {
             grid.Undo (snapshot);
             scoreUI.Undo (snapshot);
+            gameOverGameObject.SetActive (false);
             snapshot = null;
         }
     }
 
-    public void Restart () {
+    private bool SnapshotExists () {
+        return snapshot != null;
+    }
+
+    public void RestartGame () {
         grid.Restart ();
         scoreUI.Restart ();
-        snapshot.Restart ();
-
-        for (int i = 0; i < gridProperties.initialTiles; ++i) {
-            SpawnTile ();
+        if (SnapshotExists ()) {
+            snapshot.Restart ();
         }
+
+        SpawnTiles ();
 
         gameOverGameObject.SetActive (false);
         snapshot = null;
